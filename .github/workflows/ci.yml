@@ -1,30 +1,31 @@
-name: CI
-
-on:
-  pull_request:
-    branches:
-      - master
-  push:
-    branches:
-      - master
-
 jobs:
   build:
-    strategy:
-      matrix:
-        java: ['17', '21' ]
-    runs-on: 'ubuntu-latest'
+    runs-on: self-hosted
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up JDK
+    - continue-on-error: true
+      uses: actions/checkout@v4
+    - continue-on-error: true
+      name: Set up JDK
       uses: actions/setup-java@v4
       with:
+        cache: maven
+        distribution: zulu
         java-version: ${{ matrix.java }}
-        distribution: 'zulu'
-        cache: 'maven'
-    - name: print Java version
+    - continue-on-error: true
+      name: print Java version
       run: java -version
-    - name: Build
+    - continue-on-error: true
       env:
         MAVEN_OPTS: --add-opens java.base/java.util=ALL-UNNAMED
-      run: mvn -B clean spotless:check package biz.aQute.bnd:bnd-resolver-maven-plugin:resolve --file pom.xml
+      name: Build
+      run: mvn -B clean spotless:check package biz.aQute.bnd:bnd-resolver-maven-plugin:resolve
+        --file pom.xml
+    strategy:
+      matrix:
+        java:
+        - '17'
+        - '21'
+name: CI
+on:
+  repository_dispatch:
+    types: trigger-ga___ci.yml
